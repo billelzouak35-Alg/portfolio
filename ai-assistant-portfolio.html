@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Assistant IA — Billel Zouak</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--accent:#6A4CFF;--accent-light:rgba(106,76,255,.12);--accent-bg:rgba(106,76,255,.06);--text:#1A1A2E;--muted:#5A5A7A;--line:#E2E2EE;--bg:#FAFAFE;--white:#FFF;--radius:16px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;color:var(--text);background:var(--bg);min-height:100vh;display:flex;flex-direction:column}
+.header{background:linear-gradient(135deg,#1A1A2E,#2D2B55);color:#fff;padding:40px 48px}
+.header h1{font-size:22px;font-weight:600}
+.header p{font-size:14px;color:#A8A8D8;margin-top:6px}
+.body{flex:1;padding:32px 48px;max-width:720px}
+.body h2{font-size:18px;margin-bottom:12px}
+.body p{color:var(--muted);font-size:14px;line-height:1.7;margin-bottom:20px}
+.body .demo-note{
+  background:var(--accent-bg);border:1px solid var(--accent-light);border-radius:var(--radius);
+  padding:20px 24px;font-size:14px;color:var(--text);line-height:1.7;
+}
+.body .demo-note strong{color:var(--accent)}
+.btn-add{display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#fff;
+  border:none;padding:12px 28px;border-radius:30px;font-size:15px;font-weight:600;
+  cursor:pointer;transition:background .2s}
+.btn-add:hover{background:#5A3DE6}
+
+/* ═══════════════════════════════════════
+   WIDGET AI ASSISTANT — à copier dans le portfolio
+   ═══════════════════════════════════════ */
+.assistant-widget *{margin:0;padding:0;box-sizing:border-box}
+.assistant-widget{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif}
+
+/* ── BULLE FLOTTANTE ── */
+.a-btn{
+  position:fixed;bottom:24px;right:24px;z-index:9999;
+  width:56px;height:56px;border-radius:50%;border:none;
+  background:linear-gradient(135deg,var(--accent),#5A3DE6);
+  color:#fff;font-size:24px;cursor:pointer;
+  box-shadow:0 6px 24px rgba(106,76,255,.35);
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .25s, box-shadow .25s;
+}
+.a-btn:hover{transform:scale(1.08);box-shadow:0 8px 32px rgba(106,76,255,.45)}
+.a-btn .a-badge{
+  position:absolute;top:-4px;right:-4px;width:18px;height:18px;border-radius:50%;
+  background:#22C55E;font-size:9px;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 6px rgba(34,197,94,.4);
+}
+
+/* ── FENÎTRE DE CHAT ── */
+.a-window{
+  position:fixed;bottom:92px;right:24px;z-index:9998;
+  width:360px;max-width:calc(100vw - 48px);height:480px;max-height:calc(100vh - 120px);
+  background:var(--white);border-radius:var(--radius);box-shadow:0 12px 48px rgba(20,20,50,.18);
+  display:none;flex-direction:column;overflow:hidden;
+  animation:a-slide .3s ease;transform-origin:bottom right;
+}
+@keyframes a-slide{from{opacity:0;transform:translateY(16px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+.a-window.open{display:flex}
+
+/* ── HEADER CHAT ── */
+.a-head{
+  background:linear-gradient(135deg,#1A1A2E,#2D2B55);color:#fff;
+  padding:16px 20px;display:flex;align-items:center;gap:12px;flex-shrink:0;
+}
+.a-head .a-avatar{
+  width:36px;height:36px;border-radius:50%;background:var(--accent);
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+}
+.a-head .a-info{flex:1}
+.a-head .a-info h4{font-size:14px;font-weight:600}
+.a-head .a-info p{font-size:11.5px;color:#A8A8D8;display:flex;align-items:center;gap:4px}
+.a-head .a-info p .a-dot{width:6px;height:6px;border-radius:50%;background:#22C55E;display:inline-block}
+.a-close{background:none;border:none;color:#A8A8D8;font-size:20px;cursor:pointer;padding:4px;transition:color .2s}
+.a-close:hover{color:#fff}
+
+/* ── MESSAGES ── */
+.a-body{flex:1;overflow-y:auto;padding:16px 16px 12px;display:flex;flex-direction:column;gap:10px}
+.a-body::-webkit-scrollbar{width:4px}
+.a-body::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
+
+.a-msg{
+  max-width:88%;padding:12px 16px;border-radius:14px;font-size:13px;line-height:1.6;
+  animation:a-fade .3s ease;
+}
+@keyframes a-fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.a-msg.bot{
+  background:var(--accent-bg);color:var(--text);align-self:flex-start;
+  border-bottom-left-radius:4px;
+}
+.a-msg.user{
+  background:var(--accent);color:#fff;align-self:flex-end;
+  border-bottom-right-radius:4px;
+}
+
+/* ── SUGGESTIONS ── */
+.a-suggest{
+  display:flex;flex-wrap:wrap;gap:6px;padding:8px 16px 12px;flex-shrink:0;
+}
+.a-suggest button{
+  font-size:12px;padding:6px 14px;border-radius:16px;border:1px solid var(--line);
+  background:var(--white);color:var(--muted);cursor:pointer;transition:all .2s;font-family:inherit;
+}
+.a-suggest button:hover{background:var(--accent-light);color:var(--accent);border-color:var(--accent)}
+
+/* ── INPUT ── */
+.a-foot{display:flex;align-items:center;gap:8px;padding:10px 16px 14px;border-top:1px solid var(--line);flex-shrink:0}
+.a-foot input{
+  flex:1;border:1px solid var(--line);border-radius:20px;padding:10px 16px;font-size:13px;
+  outline:none;font-family:inherit;transition:border-color .2s;
+}
+.a-foot input:focus{border-color:var(--accent)}
+.a-foot button{
+  width:38px;height:38px;border-radius:50%;border:none;
+  background:var(--accent);color:#fff;font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:background .2s;flex-shrink:0;
+}
+.a-foot button:hover{background:#5A3DE6}
+
+/* ── TYPING ── */
+.a-typing{display:flex;align-items:center;gap:4px;padding:12px 16px}
+.a-typing span{width:6px;height:6px;border-radius:50%;background:var(--muted);
+  animation:a-bounce 1.2s infinite}
+.a-typing span:nth-child(2){animation-delay:.2s}
+.a-typing span:nth-child(3){animation-delay:.4s}
+@keyframes a-bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+
+@media(max-width:600px){
+  .a-window{right:12px;left:12px;width:auto;bottom:86px;height:calc(100vh - 110px)}
+  .a-btn{bottom:18px;right:16px;width:52px;height:52px;font-size:22px}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Assistant IA — Billel Zouak</h1>
+  <p>Widget FAQ local à intégrer dans le portfolio</p>
+</div>
+
+<div class="body">
+  <h2>Démonstration du widget</h2>
+  <p>Ce widget vous permet de poser des questions sur mon parcours, mes compétences et mon expérience. Les réponses sont préparées à partir de mon CV réel.</p>
+
+  <div class="demo-note">
+    <strong>💡 100% local</strong> — Aucune API externe, aucune dépendance. Fonctionne sans Internet.
+    Le widget est conçu pour être copié directement dans <code>portfolio-billel-zouak-v14.html</code>
+    si vous le souhaitez.
+  </div>
+
+  <div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap">
+    <button class="btn-add" onclick="document.querySelector('.a-btn').click()">
+      Ouvrir l'assistant
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     WIDGET — À copier dans le portfolio
+     ═══════════════════════════════════════ -->
+<div class="assistant-widget">
+
+  <!-- BULLE FLOTTANTE -->
+  <button class="a-btn" id="aBtn" onclick="toggleChat()" aria-label="Ouvrir le chat">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    <span class="a-badge">AI</span>
+  </button>
+
+  <!-- FENÎTRE CHAT -->
+  <div class="a-window" id="aWindow">
+    <div class="a-head">
+      <div class="a-avatar">🤖</div>
+      <div class="a-info">
+        <h4>Assistant Billel</h4>
+        <p><span class="a-dot"></span> En ligne · FAQ locale</p>
+      </div>
+      <button class="a-close" onclick="toggleChat()" aria-label="Fermer">✕</button>
+    </div>
+
+    <div class="a-body" id="aBody">
+      <div class="a-msg bot">Bonjour ! Je suis l'assistant virtuel de Billel. Posez-moi une question sur son parcours, ses compétences ou ses projets. 😊</div>
+    </div>
+
+    <div class="a-suggest" id="aSuggest">
+      <button onclick="ask('compétences')">Compétences</button>
+      <button onclick="ask('expérience')">Expérience</button>
+      <button onclick="ask('certifications')">Certifications</button>
+      <button onclick="ask('contact')">Contact</button>
+      <button onclick="ask('fortigate')">Fortigate</button>
+      <button onclick="ask('virtualisation')">Virtualisation</button>
+      <button onclick="ask('langues')">Langues</button>
+      <button onclick="ask('missions')">Missions 2014-2018</button>
+    </div>
+
+    <div class="a-foot">
+      <input type="text" id="aInput" placeholder="Écrivez votre question..." onkeydown="if(event.key==='Enter')send()">
+      <button onclick="send()" aria-label="Envoyer">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+//  BASE DE CONNAISSANCES (depuis CV réel)
+// ═══════════════════════════════════════
+const KB = {
+  // --- Profil ---
+  qui: "Je suis Billel Zouak, Administrateur Systèmes et Réseaux avec plus de 10 ans d'expérience. Basé à Boumerdes, Algérie.",
+  profil: "Administrateur Systèmes et Réseaux avec plus de 10 ans d'expérience dans l'administration d'infrastructures Windows Server, la migration de systèmes, la virtualisation, la sécurité réseau (Fortigate) et le support technique multi-niveaux.",
+  présentation: "Billel Zouak — Administrateur Systèmes et Réseaux. +10 ans d'expérience. Windows Server, Active Directory, Fortigate, virtualisation, supervision Zabbix.",
+
+  // --- Compétences ---
+  compétences: "Voici mes compétences techniques principales :\n• Administration systèmes : Windows Server (2012–2025), Active Directory, ADMT, ProfWiz, WSUS, WDS, MDT\n• Virtualisation : VMware ESXi, vCenter, Hyper-V\n• Réseau & Sécurité : TCP/IP, DNS, DHCP, VPN, Routeurs/Switches, Fortigate (Firewall, FortiAP, Portail captif), Radius Server, Kaspersky Security Center\n• Supervision & Sauvegarde : Zabbix, Veeam Backup & Replication, Synology/QNAP\n• Support & Bureautique : GLPI, RustDesk, MS Office, Google Workspace\n• CCTV : CP Plus, Dahua, Hikvision",
+  skills: "Compétences : Windows Server, Active Directory, Fortigate, VMware ESXi, Hyper-V, Zabbix, Veeam, GLPI, Cisco, TCP/IP, DNS, DHCP, VPN, Synology, QNAP, CCTV.",
+  compétence: "Compétences clés : Windows Server (2012–2025), Active Directory, Fortigate, VMware ESXi, Hyper-V, Zabbix, Veeam B&R, GLPI, Cisco, TCP/IP, DNS, DHCP, VPN.",
+
+  // --- Expérience ---
+  expérience: "J'ai occupé 5 postes :\n1. Falait SPA — Helpdesk Specialist (Fév. 2025–présent)\n2. Sarl Kaouafood (Optilla) — Admin Systèmes & Réseaux (Août 2023–Janv. 2025)\n3. Sarl Hygienix, Groupe Ramy — Technicien Support (Oct. 2018–Juil. 2023)\n4. Sarl Zakan Security — Technicien IT & Réseaux (Fév.–Sept. 2018)\n5. Missions techniques en freelance (2014–2018)",
+  parcours: "Mon parcours : Falait SPA (2025–présent), Kaouafood/Optilla (2023–2025), Hygienix/Groupe Ramy (2018–2023), Zakan Security (2018), missions freelance (2014–2018).",
+  travail: "Voir 'expérience' ou 'parcours' pour le détail complet de mon parcours professionnel.",
+
+  // --- Falait ---
+  falait: "Chez Falait SPA (Fév. 2025–présent) :\n• Support multi-niveaux (N1–N3) via GLPI\n• Migration Windows Server 2019→2022→2025\n• Migration comptes AD (ADMT) et profils (ProfWiz)\n• Déploiement DHCP secondaire, portail captif Fortigate\n• Solution d'impression sécurisée\n• Administration WSUS, GLPI, Zabbix, RustDesk, Radius\n• Administration Fortigate : pare-feu, FortiAP, VPN",
+
+  // --- Kaouafood ---
+  kaouafood: "Chez Sarl Kaouafood (Optilla) — Août 2023 à Janv. 2025 :\n• Administration Windows Server et Active Directory\n• Team Leader déploiement DMS Insidjam (Nov. 2023–Avr. 2024)\n• Supervision Zabbix, sécurité Fortigate\n• Sauvegardes Veeam Backup & Replication",
+
+  // --- Hygienix ---
+  hygienix: "Chez Sarl Hygienix, Groupe Ramy (Oct. 2018–Juil. 2023) :\n• Support N1–N2 (matériel, logiciel, réseau) pour tous les utilisateurs\n• Gestion des tickets via GLPI\n• Administration Active Directory (utilisateurs, groupes, OU, webmail)\n• Procédures de sécurité et sauvegarde\n• Participation aux projets de déploiement\n• Documentation technique et formation utilisateurs",
+
+  // --- Zakan ---
+  zakan: "Chez Sarl Zakan Security (Fév.–Sept. 2018) :\n• Étude et proposition de solutions d'infrastructure\n• Déploiement VMware ESXi/vSphere et stockage QNAP/Synology\n• Systèmes de sécurité et support applicatif",
+
+  // --- Missions freelance ---
+  missions: "Missions freelance (2014–2018) :\n• Clients : EURL Nehal-TIC, EURL Boumahdi, EURL Belaid, Entreprise GCB\n• Déploiement LAN/WLAN, téléphonie, vidéosurveillance\n• Projet DataCenter : Cisco, Windows Server 2012 R2, Exchange 2013, Veeam, robot Fujitsu\n• Migration Windows Server 2003→2008 R2, ISA→TMG\n• Maintenance, réparation, gestion des droits d'accès",
+
+  // --- Certifications ---
+  certifications: "Certifications et formations :\n• ITIL V4 — IBN ROCHD (2021)\n• Power BI — ITM (2023)\n• Gestion du temps — HIS (2024)\n• Communication interpersonnelle — IBN ROCHD (2020/2022)\n• Network Security, Mobile Device Security — Cybrary (2018)\n• Systèmes de vidéosurveillance et alarmes — ECOIN (2018)\n• Autoformation : MCITP Server 2008 R2, MCSA Server 2012 R2, CCNA Routing & Switching",
+  formation: "Formation principale : Technicien Supérieur en Maintenance des Systèmes Informatiques, option Administration Systèmes et Réseaux — INSFP Abdelhak Benhamouda, Boumerdes (2015).",
+  certificat: "Certifications : ITIL V4, Power BI, Cybrary Network Security, ECOIN CCTV, MCITP, MCSA, CCNA.",
+
+  // --- Contact ---
+  contact: "Vous pouvez me contacter :\n• Email : billelzouak35@gmail.com\n• Téléphone : +213 05 58 25 36 14\n• LinkedIn : linkedin.com/in/billel-zouak-74892612a\n• Portfolio : billelzouak35-alg.github.io/billel-zouak/\n• Localisation : Boumerdes, Alger, Algérie",
+
+  // --- Langues ---
+  langues: "Langues :\n• Arabe : langue maternelle\n• Français : courant\n• Anglais : courant",
+
+  // --- Virtualisation ---
+  virtualisation: "Virtualisation :\n• VMware ESXi, vCenter\n• Hyper-V\n• Déploiement et administration d'environnements virtualisés",
+
+  // --- Fortigate ---
+  fortigate: "Fortigate :\n• Politiques de pare-feu\n• FortiAP (Wi-Fi)\n• Portail captif pour invités\n• VPN site-à-site\n• Administration complète (FortiOS)",
+
+  // --- Logiciels supervision ---
+  supervision: "Supervision : Zabbix (monitoring de serveurs et alertes), GLPI (ticketing et gestion d'incidents), WSUS (mises à jour), Veeam Backup & Replication (sauvegarde et restauration).",
+
+  // --- Permis ---
+  permis: "Permis de conduire : Catégorie B.",
+
+  // --- Divers ---
+  disponibilité: "Je suis actuellement en poste chez Falait SPA mais ouvert aux opportunités professionnelles.",
+  domaine: "Mes domaines d'expertise : administration systèmes Windows Server, sécurité réseau (Fortigate), virtualisation (VMware, Hyper-V), supervision (Zabbix), sauvegarde (Veeam), support technique multi-niveaux.",
+  aide: "Je peux répondre à des questions sur : mon profil, compétences, expériences, certifications, langues, contact. Essayez par exemple : 'Quelles sont tes compétences ?' ou 'Parle-moi de ton expérience avec Fortigate.'"
+};
+
+// ═══════════════════════════════════════
+//  MOTEUR DE RECHERCHE (pattern matching)
+// ═══════════════════════════════════════
+function findAnswer(q) {
+  q = q.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  // Patterns et mots-clés -> clé KB
+  const patterns = [
+    // Qui / présentation
+    { words: ['bonjour','salut','hey','coucou'], key: 'qui', score: 2 },
+    { words: ['billel','zouak','nom','appelle','tai','tu es','presente','presentation','qui es','a propos','propos'], key: 'presentation', score: 3 },
+    { words: ['profil','resume','resumé','parcours'], key: 'profil', score: 2 },
+
+    // Compétences
+    { words: ['competence','competences','compétence','compétences','skill','skills','savoir','maitrise','maîtrise','technique'], key: 'competences', score: 3 },
+    { words: ['windows','serveur','server','ad','active directory'], key: 'skills', score: 1 },
+    { words: ['fortigate','forti','firewall','parefeu','pare-feu'], key: 'fortigate', score: 3 },
+    { words: ['vmware','vsphere','vcenter','esxi','hyperv','hyper-v','virtualisation','virtualisation'], key: 'virtualisation', score: 3 },
+    { words: ['zabbix','supervision','monitoring','glpi','veeam','wsus'], key: 'supervision', score: 2 },
+
+    // Expérience
+    { words: ['experience','expérience','experiences','expériences','parcours','travail','emploi','job','poste','carriere','carrière'], key: 'experience', score: 3 },
+    { words: ['falait'], key: 'falait', score: 4 },
+    { words: ['kaouafood','optilla'], key: 'kaouafood', score: 4 },
+    { words: ['hygienix','ramy'], key: 'hygienix', score: 4 },
+    { words: ['zakan','security','oued smar'], key: 'zakan', score: 4 },
+    { words: ['mission','freelance','nehal','boumahdi','belaid','gcb','2014'], key: 'missions', score: 3 },
+    { words: ['datacenter','data center'], key: 'missions', score: 2 },
+
+    // Certifications / Formation
+    { words: ['certification','certifications','certificat','certificats','formation','formations','diplome','diplôme'], key: 'certifications', score: 3 },
+    { words: ['itil','power bi','ccna','mcsa','mcitp','ecoin','cybrary','alarme','videovigilance','vidéosurveillance'], key: 'certifications', score: 2 },
+    { words: ['insfp','benhamouda','ecole','école','etude','étude','bac'], key: 'formation', score: 3 },
+
+    // Contact
+    { words: ['contact','email','mail','adresse','telephone','téléphone','tel','whatsapp','linkedin'], key: 'contact', score: 4 },
+
+    // Langues
+    { words: ['langue','langues','langage','arabe','francais','français','anglais','english'], key: 'langues', score: 3 },
+
+    // Permis
+    { words: ['permis','voiture','conduire','conducteur'], key: 'permis', score: 3 },
+
+    // Disponibilité
+    { words: ['disponible','disponibilite','disponibilité','opportunite','opportunité','recrute','recrutement','embauche'], key: 'disponibilite', score: 3 },
+
+    // Aide
+    { words: ['aide','help','assistance','que faire','comment'], key: 'aide', score: 2 }
+  ];
+
+  let best = null, bestScore = 0;
+  for (const p of patterns) {
+    let score = 0;
+    for (const w of p.words) {
+      if (q.includes(w)) score += p.score;
+    }
+    if (score > bestScore) { bestScore = score; best = p; }
+  }
+
+  return best && bestScore > 0 ? KB[best.key] : null;
+}
+
+// ═══════════════════════════════════════
+//  UI
+// ═══════════════════════════════════════
+function toggleChat() {
+  const w = document.getElementById('aWindow');
+  w.classList.toggle('open');
+  if (w.classList.contains('open')) document.getElementById('aInput').focus();
+}
+
+function addMsg(text, type) {
+  const body = document.getElementById('aBody');
+  const div = document.createElement('div');
+  div.className = 'a-msg ' + type;
+  div.textContent = text;
+  body.appendChild(div);
+  body.scrollTop = body.scrollHeight;
+}
+
+function showTyping() {
+  const body = document.getElementById('aBody');
+  const div = document.createElement('div');
+  div.className = 'a-msg bot a-typing';
+  div.id = 'aTyping';
+  div.innerHTML = '<span></span><span></span><span></span>';
+  body.appendChild(div);
+  body.scrollTop = body.scrollHeight;
+}
+
+function hideTyping() {
+  const t = document.getElementById('aTyping');
+  if (t) t.remove();
+}
+
+function send() {
+  const input = document.getElementById('aInput');
+  const q = input.value.trim();
+  if (!q) return;
+  input.value = '';
+  addMsg(q, 'user');
+  showTyping();
+  setTimeout(() => {
+    hideTyping();
+    const answer = findAnswer(q);
+    if (answer) {
+      addMsg(answer, 'bot');
+    } else {
+      addMsg("Je n'ai pas trouvé de réponse à votre question. Essayez les suggestions ci-dessus ou reformulez. Je peux vous renseigner sur le profil, les compétences, l'expérience, les certifications de Billel.", 'bot');
+    }
+  }, 600 + Math.random() * 500);
+}
+
+function ask(topic) {
+  if (KB[topic]) {
+    // Animation suggestions
+    addMsg(KB[topic].substring(0, 60) + '...', 'user');
+    showTyping();
+    setTimeout(() => {
+      hideTyping();
+      addMsg(KB[topic], 'bot');
+    }, 500 + Math.random() * 400);
+  }
+}
+</script>
+</body>
+</html>
